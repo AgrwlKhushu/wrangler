@@ -21,23 +21,24 @@ import com.google.cloud.storage.Bucket;
 import java.util.Collection;
 
 /**
- * Holds GCS {@link Bucket} and whether number of buckets added has exceeded the limit. This is a workaround for
+ * Holds GCS {@link Bucket} and whether number of buckets added has exceeded
+ * the limit. This is a workaround for
  * CDAP-14446 and should be removed once pagination is implemented.
  */
 public class Buckets {
-  private Collection<Bucket> buckets;
-  private boolean limitExceeded;
+    private Collection<Bucket> buckets;
+    private boolean limitExceeded;
 
-  public Buckets(Collection<Bucket> buckets, boolean limitExceeded) {
-    this.buckets = buckets;
-    this.limitExceeded = limitExceeded;
-  }
+    public Buckets(Collection<Bucket> buckets, boolean limitExceeded) {
+        this.buckets = buckets;
+        this.limitExceeded = limitExceeded;
+    }
 
-  public Collection<Bucket> getBuckets() {
-    return buckets;
-  }
+    public Collection<Bucket> getBuckets() {
+        return buckets;
+    }
 
-  public boolean isLimitExceeded() {
-    return limitExceeded;
-  }
+    public boolean isLimitExceeded() {
+        return limitExceeded;
+    }
 }

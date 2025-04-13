@@ -10,7 +10,8 @@
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
+ *  License for the specific language governing permissions and limitations
+ * under
  *  the License.
  *
  */
@@ -24,17 +25,19 @@ import org.junit.Test;
  * Tests {@link Messages}
  */
 public class MessagesTest {
-  private static final Messages MSG = MessagesFactory.getMessages("user/test");
-  private static String expected = "this is a simple test";
-  @Test
-  public void testMessages() throws Exception {
-    Assert.assertEquals(expected, MSG.get("test.simple"));
-  }
+    private static final Messages MSG = MessagesFactory.getMessages("user" +
+            "/test");
+    private static String expected = "this is a simple test";
 
-  @Test
-  public void testWithOneParameter() throws Exception {
-    String value = "this";
-    Assert.assertEquals(expected, MSG.get("test.with.1.parameter", value));
-  }
+    @Test
+    public void testMessages() throws Exception {
+        Assert.assertEquals(expected, MSG.get("test.simple"));
+    }
+
+    @Test
+    public void testWithOneParameter() throws Exception {
+        String value = "this";
+        Assert.assertEquals(expected, MSG.get("test.with.1.parameter", value));
+    }
 
 }

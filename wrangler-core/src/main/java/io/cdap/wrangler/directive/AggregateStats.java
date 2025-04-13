@@ -35,7 +35,8 @@ import java.util.List;
  */
 @Plugin(type = Directive.TYPE)
 @Name(AggregateStats.NAME)
-@Description("Aggregates byte sizes and time durations, producing a single row with total values.")
+@Description("Aggregates byte sizes and time durations, producing a single " +
+        "row with total values.")
 public class AggregateStats implements Directive {
     public static final String NAME = "aggregate-stats";
 
@@ -60,8 +61,10 @@ public class AggregateStats implements Directive {
         builder.define("timeColumn", TokenType.COLUMN_NAME);
         builder.define("outputSizeColumn", TokenType.COLUMN_NAME);
         builder.define("outputTimeColumn", TokenType.COLUMN_NAME);
-        builder.define("unitSize", TokenType.BYTE_SIZE, true); // Optional Byte Size
-        builder.define("unitTime", TokenType.TIME_DURATION, true); // Optional Time Duration
+        builder.define("unitSize", TokenType.BYTE_SIZE, true); // Optional
+        // Byte Size
+        builder.define("unitTime", TokenType.TIME_DURATION, true); //
+        // Optional Time Duration
         return builder.build();
     }
 
@@ -74,8 +77,10 @@ public class AggregateStats implements Directive {
     public void initialize(Arguments arguments) {
         sizeColumn = arguments.value("sizeColumn").value().toString();
         timeColumn = arguments.value("timeColumn").value().toString();
-        outputSizeColumn = arguments.value("outputSizeColumn").value().toString();
-        outputTimeColumn = arguments.value("outputTimeColumn").value().toString();
+        outputSizeColumn =
+                arguments.value("outputSizeColumn").value().toString();
+        outputTimeColumn =
+                arguments.value("outputTimeColumn").value().toString();
     }
 
     /**
@@ -175,7 +180,8 @@ public class AggregateStats implements Directive {
             }
             return Long.parseLong(time); // Default to milliseconds
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid time format: " + time, e);
+            throw new IllegalArgumentException("Invalid time format: " + time
+                    , e);
         }
     }
 

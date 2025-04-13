@@ -22,7 +22,8 @@ import java.util.List;
 
 /**
  * Response after executing directives remotely
- * Please make sure all fields are registered with {@link io.cdap.wrangler.utils.KryoSerializer}
+ * Please make sure all fields are registered with
+ * {@link io.cdap.wrangler.utils.KryoSerializer}
  */
 public class RemoteDirectiveResponse implements Serializable {
     private final List<Row> rows;
@@ -30,7 +31,7 @@ public class RemoteDirectiveResponse implements Serializable {
 
     /**
      * Only used by {@link io.cdap.wrangler.utils.KryoSerializer}
-    **/
+     **/
     private RemoteDirectiveResponse() {
         this(null, null);
     }

@@ -18,39 +18,40 @@ package io.cdap.wrangler.proto;
 import java.util.Objects;
 
 /**
- * Workspace identifier information sent as response after reading table data into workspace
+ * Workspace identifier information sent as response after reading table data
+ * into workspace
  */
 public class WorkspaceIdentifier {
-  private final String id;
-  private final String name;
+    private final String id;
+    private final String name;
 
-  public WorkspaceIdentifier(String id, String name) {
-    this.id = id;
-    this.name = name;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    public WorkspaceIdentifier(String id, String name) {
+        this.id = id;
+        this.name = name;
     }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    WorkspaceIdentifier that = (WorkspaceIdentifier) o;
-    return Objects.equals(id, that.id) && Objects.equals(name, that.name);
-  }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, name);
-  }
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        WorkspaceIdentifier that = (WorkspaceIdentifier) o;
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
+    }
 }

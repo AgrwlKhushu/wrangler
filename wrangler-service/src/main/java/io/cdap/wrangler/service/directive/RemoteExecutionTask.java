@@ -51,6 +51,7 @@ import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
 import io.cdap.wrangler.utils.KryoSerializer;
 import io.cdap.wrangler.utils.ObjectSerDe;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,92 +66,105 @@ import static io.cdap.wrangler.schema.TransientStoreKeys.OUTPUT_SCHEMA;
  */
 public class RemoteExecutionTask implements RunnableTask {
 
-  private static final Gson GSON = new GsonBuilder()
-          .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
-          .create();
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
+            .create();
 
-  @Override
-  public void run(RunnableTaskContext runnableTaskContext) throws Exception {
-    RemoteDirectiveRequest directiveRequest = GSON.fromJson(runnableTaskContext.getParam(),
-                                                            RemoteDirectiveRequest.class);
+    @Override
+    public void run(RunnableTaskContext runnableTaskContext) throws Exception {
+        RemoteDirectiveRequest directiveRequest =
+                GSON.fromJson(runnableTaskContext.getParam(),
+                        RemoteDirectiveRequest.class);
 
-    SystemAppTaskContext systemAppContext = runnableTaskContext.getRunnableTaskSystemAppContext();
-    String namespace = directiveRequest.getPluginNameSpace();
-    Map<String, DirectiveClass> systemDirectives = directiveRequest.getSystemDirectives();
-    AtomicBoolean hasUDD = new AtomicBoolean();
+        SystemAppTaskContext systemAppContext =
+                runnableTaskContext.getRunnableTaskSystemAppContext();
+        String namespace = directiveRequest.getPluginNameSpace();
+        Map<String, DirectiveClass> systemDirectives =
+                directiveRequest.getSystemDirectives();
+        AtomicBoolean hasUDD = new AtomicBoolean();
 
-    // Collect directives.
-    try (UserDirectiveRegistry userDirectiveRegistry = new UserDirectiveRegistry(systemAppContext)) {
-      List<Directive> directives = new ArrayList<>();
-      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(DirectiveConfig.EMPTY));
-      walker.walk(directiveRequest.getRecipe(), (command, tokenGroup) -> {
-        DirectiveInfo info;
-        DirectiveClass directiveClass = systemDirectives.get(command);
-        if (directiveClass == null) {
-          info = userDirectiveRegistry.get(namespace, command);
-          hasUDD.set(true);
-        } else {
-          // For system directives, we can load it directly from the classloader.
-          try {
-            info = DirectiveInfo.fromSystem((Class<? extends Directive>) Class.forName(directiveClass.getClassName()));
-          } catch (ClassNotFoundException e) {
-            throw new DirectiveLoadException("Failed to load system directive " + directiveClass.getName(), e);
-          }
+        // Collect directives.
+        try (UserDirectiveRegistry userDirectiveRegistry =
+                     new UserDirectiveRegistry(systemAppContext)) {
+            List<Directive> directives = new ArrayList<>();
+            GrammarWalker walker = new GrammarWalker(new RecipeCompiler(),
+                    new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+            walker.walk(directiveRequest.getRecipe(), (command, tokenGroup) -> {
+                DirectiveInfo info;
+                DirectiveClass directiveClass = systemDirectives.get(command);
+                if (directiveClass == null) {
+                    info = userDirectiveRegistry.get(namespace, command);
+                    hasUDD.set(true);
+                } else {
+                    // For system directives, we can load it directly from
+                    // the classloader.
+                    try {
+                        info = DirectiveInfo.fromSystem((Class<?
+                                extends Directive>) Class.forName(directiveClass.getClassName()));
+                    } catch (ClassNotFoundException e) {
+                        throw new DirectiveLoadException("Failed to load " +
+                                "system directive " + directiveClass.getName(), e);
+                    }
+                }
+
+                Directive directive = info.instance();
+                UsageDefinition definition = directive.define();
+                Arguments arguments = new MapArguments(definition, tokenGroup);
+                directive.initialize(arguments);
+                directives.add(directive);
+            });
+
+            // If there is no directives, there is nothing to execute
+            if (directives.isEmpty()) {
+                runnableTaskContext.writeResult(directiveRequest.getData());
+                return;
+            }
+
+            ObjectSerDe<List<Row>> objectSerDe = new ObjectSerDe<>();
+            List<Row> rows = objectSerDe.toObject(directiveRequest.getData());
+
+            Schema inputSchema = directiveRequest.getInputSchema();
+            TransientStore transientStore = new DefaultTransientStore();
+            if (inputSchema != null) {
+                transientStore.set(TransientVariableScope.GLOBAL,
+                        INPUT_SCHEMA, inputSchema);
+            }
+
+            try (RecipePipelineExecutor executor =
+                         new RecipePipelineExecutor(() -> directives,
+                                 new ServicePipelineContext(
+                                         namespace,
+                                         ExecutorContext.Environment.SERVICE,
+                                         systemAppContext,
+                                         transientStore))) {
+                rows = executor.execute(rows);
+                List<ErrorRecordBase> errors = executor.errors().stream()
+                        .filter(ErrorRecordBase::isShownInWrangler)
+                        .collect(Collectors.toList());
+
+                if (!errors.isEmpty()) {
+                    throw new ErrorRecordsException(errors);
+                }
+            } catch (RecipeException e) {
+                throw new BadRequestException(e.getMessage(), e);
+            }
+
+            Schema outputSchema = transientStore.get(OUTPUT_SCHEMA);
+            RemoteDirectiveResponse response =
+                    new RemoteDirectiveResponse(rows, outputSchema);
+            ObjectSerDe<RemoteDirectiveResponse> responseSerDe =
+                    new ObjectSerDe<>();
+
+            runnableTaskContext.setTerminateOnComplete(hasUDD.get() || EL.isUsed());
+
+            if (Feature.WRANGLER_KRYO_SERIALIZATION.isEnabled(systemAppContext)) {
+                runnableTaskContext.writeResult(new KryoSerializer().fromRemoteDirectiveResponse(response));
+            } else {
+                runnableTaskContext.writeResult(responseSerDe.toByteArray(response));
+            }
+        } catch (DirectiveParseException | ClassNotFoundException |
+                 CompileException e) {
+            throw new BadRequestException(e.getMessage(), e);
         }
-
-        Directive directive = info.instance();
-        UsageDefinition definition = directive.define();
-        Arguments arguments = new MapArguments(definition, tokenGroup);
-        directive.initialize(arguments);
-        directives.add(directive);
-      });
-
-      // If there is no directives, there is nothing to execute
-      if (directives.isEmpty()) {
-        runnableTaskContext.writeResult(directiveRequest.getData());
-        return;
-      }
-
-      ObjectSerDe<List<Row>> objectSerDe = new ObjectSerDe<>();
-      List<Row> rows = objectSerDe.toObject(directiveRequest.getData());
-
-      Schema inputSchema = directiveRequest.getInputSchema();
-      TransientStore transientStore = new DefaultTransientStore();
-      if (inputSchema != null) {
-        transientStore.set(TransientVariableScope.GLOBAL, INPUT_SCHEMA, inputSchema);
-      }
-
-      try (RecipePipelineExecutor executor = new RecipePipelineExecutor(() -> directives,
-                                                                        new ServicePipelineContext(
-                                                                          namespace,
-                                                                          ExecutorContext.Environment.SERVICE,
-                                                                          systemAppContext,
-                                                                          transientStore))) {
-        rows = executor.execute(rows);
-        List<ErrorRecordBase> errors = executor.errors().stream()
-            .filter(ErrorRecordBase::isShownInWrangler)
-            .collect(Collectors.toList());
-
-        if (!errors.isEmpty()) {
-          throw new ErrorRecordsException(errors);
-        }
-      } catch (RecipeException e) {
-        throw new BadRequestException(e.getMessage(), e);
-      }
-
-      Schema outputSchema = transientStore.get(OUTPUT_SCHEMA);
-      RemoteDirectiveResponse response = new RemoteDirectiveResponse(rows, outputSchema);
-      ObjectSerDe<RemoteDirectiveResponse> responseSerDe = new ObjectSerDe<>();
-
-      runnableTaskContext.setTerminateOnComplete(hasUDD.get() || EL.isUsed());
-
-      if (Feature.WRANGLER_KRYO_SERIALIZATION.isEnabled(systemAppContext)) {
-        runnableTaskContext.writeResult(new KryoSerializer().fromRemoteDirectiveResponse(response));
-      } else {
-        runnableTaskContext.writeResult(responseSerDe.toByteArray(response));
-      }
-    } catch (DirectiveParseException | ClassNotFoundException | CompileException e) {
-      throw new BadRequestException(e.getMessage(), e);
     }
-  }
 }

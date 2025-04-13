@@ -28,45 +28,45 @@ import java.util.logging.Logger;
  * JDBC driver shim. Doesn't do anything but delegate.
  */
 public class JDBCDriverShim implements Driver {
-  private final Driver delegate;
+    private final Driver delegate;
 
-  public JDBCDriverShim(Driver delegate) {
-    this.delegate = delegate;
-  }
+    public JDBCDriverShim(Driver delegate) {
+        this.delegate = delegate;
+    }
 
-  @Override
-  public boolean acceptsURL(String url) throws SQLException {
-    return delegate.acceptsURL(url);
-  }
+    @Override
+    public boolean acceptsURL(String url) throws SQLException {
+        return delegate.acceptsURL(url);
+    }
 
-  @Override
-  public Connection connect(String url, Properties info) throws SQLException {
-    return delegate.connect(url, info);
-  }
+    @Override
+    public Connection connect(String url, Properties info) throws SQLException {
+        return delegate.connect(url, info);
+    }
 
-  @Override
-  public int getMajorVersion() {
-    return delegate.getMajorVersion();
-  }
+    @Override
+    public int getMajorVersion() {
+        return delegate.getMajorVersion();
+    }
 
-  @Override
-  public int getMinorVersion() {
-    return delegate.getMinorVersion();
-  }
+    @Override
+    public int getMinorVersion() {
+        return delegate.getMinorVersion();
+    }
 
-  @Override
-  public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
-    return delegate.getPropertyInfo(url, info);
-  }
+    @Override
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
+        return delegate.getPropertyInfo(url, info);
+    }
 
-  @Override
-  public boolean jdbcCompliant() {
-    return delegate.jdbcCompliant();
-  }
+    @Override
+    public boolean jdbcCompliant() {
+        return delegate.jdbcCompliant();
+    }
 
-  @Override
-  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-    return delegate.getParentLogger();
-  }
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return delegate.getParentLogger();
+    }
 }
 

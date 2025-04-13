@@ -22,28 +22,28 @@ package io.cdap.wrangler.api;
  * that it reports error and continues processing.
  */
 public class ReportErrorAndProceed extends Exception {
-  // Message as to why the record errored.
-  private String message;
+    // Message as to why the record errored.
+    private String message;
 
-  // Code associated with the error message.
-  private int code;
+    // Code associated with the error message.
+    private int code;
 
-  public ReportErrorAndProceed(String message, int code) {
-    this.message = message;
-    this.code = code;
-  }
+    public ReportErrorAndProceed(String message, int code) {
+        this.message = message;
+        this.code = code;
+    }
 
-  /**
-   * @return Message as why the record errored.
-   */
-  public String getMessage() {
-    return message;
-  }
+    /**
+     * @return Message as why the record errored.
+     */
+    public String getMessage() {
+        return message;
+    }
 
-  /**
-   * @return code related to the message.
-   */
-  public int getCode() {
-    return code;
-  }
+    /**
+     * @return code related to the message.
+     */
+    public int getCode() {
+        return code;
+    }
 }

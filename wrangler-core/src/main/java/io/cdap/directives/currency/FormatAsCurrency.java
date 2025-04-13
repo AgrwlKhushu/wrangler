@@ -2,7 +2,8 @@
  *  Copyright © 2017-2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
+ *  use this file except in compliance with the License. You may obtain a
+ * copy of
  *  the License at
  *
  *  http://www.apache.org/licenses/LICENSE-2.0
@@ -10,7 +11,8 @@
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
+ *  License for the specific language governing permissions and limitations
+ * under
  *  the License.
  */
 
@@ -46,67 +48,69 @@ import java.util.Locale;
 @Plugin(type = Directive.TYPE)
 @Name(FormatAsCurrency.NAME)
 @Categories(categories = {"currency"})
-@Description("Formats a number as currency using the locale specified. Default locale is en_US.")
+@Description("Formats a number as currency using the locale specified. " +
+        "Default locale is en_US.")
 public class FormatAsCurrency implements Directive, Lineage {
-  public static final String NAME = "format-as-currency";
-  private String source;
-  private String destination;
-  private String locale;
-  private NumberFormat format;
-  private Locale lcl;
+    public static final String NAME = "format-as-currency";
+    private String source;
+    private String destination;
+    private String locale;
+    private NumberFormat format;
+    private Locale lcl;
 
-  @Override
-  public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
-    builder.define("source", TokenType.COLUMN_NAME);
-    builder.define("destination", TokenType.COLUMN_NAME);
-    builder.define("locale", TokenType.TEXT, Optional.TRUE);
-    return builder.build();
-  }
-
-  @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
-    this.source = ((ColumnName) args.value("source")).value();
-    this.destination = ((ColumnName) args.value("destination")).value();
-
-    if (args.contains("locale")) {
-      this.locale = ((Text) args.value("locale")).value();
-    } else {
-      this.locale = "en_US";
+    @Override
+    public UsageDefinition define() {
+        UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+        builder.define("source", TokenType.COLUMN_NAME);
+        builder.define("destination", TokenType.COLUMN_NAME);
+        builder.define("locale", TokenType.TEXT, Optional.TRUE);
+        return builder.build();
     }
 
-    this.lcl = LocaleUtils.toLocale(locale);
-    this.format = NumberFormat.getCurrencyInstance(lcl);
-  }
+    @Override
+    public void initialize(Arguments args) throws DirectiveParseException {
+        this.source = ((ColumnName) args.value("source")).value();
+        this.destination = ((ColumnName) args.value("destination")).value();
 
-  @Override
-  public void destroy() {
-    // no-op
-  }
-
-  @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
-    for (Row row : rows) {
-      int idx = row.find(source);
-      if (idx != -1) {
-        Object object = row.getValue(idx);
-        if (object == null || !(object instanceof Double)) {
-          continue;
+        if (args.contains("locale")) {
+            this.locale = ((Text) args.value("locale")).value();
+        } else {
+            this.locale = "en_US";
         }
-        Double value = (Double) object;
-        String format = this.format.format(value);
-        row.addOrSet(destination, format);
-      }
-    }
-    return rows;
-  }
 
-  @Override
-  public Mutation lineage() {
-    return Mutation.builder()
-      .readable("Formatted column '%s' to currency locale '%s' into '%s'", source, destination, locale)
-      .conditional(source, destination)
-      .build();
-  }
+        this.lcl = LocaleUtils.toLocale(locale);
+        this.format = NumberFormat.getCurrencyInstance(lcl);
+    }
+
+    @Override
+    public void destroy() {
+        // no-op
+    }
+
+    @Override
+    public List<Row> execute(List<Row> rows, ExecutorContext context)
+            throws DirectiveExecutionException, ErrorRowException {
+        for (Row row : rows) {
+            int idx = row.find(source);
+            if (idx != -1) {
+                Object object = row.getValue(idx);
+                if (object == null || !(object instanceof Double)) {
+                    continue;
+                }
+                Double value = (Double) object;
+                String format = this.format.format(value);
+                row.addOrSet(destination, format);
+            }
+        }
+        return rows;
+    }
+
+    @Override
+    public Mutation lineage() {
+        return Mutation.builder()
+                .readable("Formatted column '%s' to currency locale '%s' into" +
+                        " '%s'", source, destination, locale)
+                .conditional(source, destination)
+                .build();
+    }
 }

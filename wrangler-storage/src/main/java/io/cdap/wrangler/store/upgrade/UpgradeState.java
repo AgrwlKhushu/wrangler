@@ -20,38 +20,40 @@ package io.cdap.wrangler.store.upgrade;
 import java.util.Objects;
 
 /**
- * Upgrade state to store any upgrade related information. Can be extended to contain more information about the
+ * Upgrade state to store any upgrade related information. Can be extended to
+ * contain more information about the
  * upgrade information
  */
 public class UpgradeState {
-  // this version is the storage version, if in the future, we want to upgrade the entity type again,
-  // we can use this to check what the previous upgraded version is.
-  private final long version;
+    // this version is the storage version, if in the future, we want to
+    // upgrade the entity type again,
+    // we can use this to check what the previous upgraded version is.
+    private final long version;
 
-  public UpgradeState(long version) {
-    this.version = version;
-  }
-
-  public long getVersion() {
-    return version;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    public UpgradeState(long version) {
+        this.version = version;
     }
 
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+    public long getVersion() {
+        return version;
     }
 
-    UpgradeState that = (UpgradeState) o;
-    return version == that.version;
-  }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(version);
-  }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        UpgradeState that = (UpgradeState) o;
+        return version == that.version;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(version);
+    }
 }

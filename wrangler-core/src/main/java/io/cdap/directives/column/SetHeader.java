@@ -2,7 +2,8 @@
  *  Copyright © 2017-2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
+ *  use this file except in compliance with the License. You may obtain a
+ * copy of
  *  the License at
  *
  *  http://www.apache.org/licenses/LICENSE-2.0
@@ -10,7 +11,8 @@
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
+ *  License for the specific language governing permissions and limitations
+ * under
  *  the License.
  */
 
@@ -40,70 +42,71 @@ import java.util.List;
 
 /**
  * A directive for setting the columns obtained from wrangling.
- *
+ * <p>
  * This step will create a copy of the input {@link Row} and clears
  * all previous column names and add new column names.
  */
 @Plugin(type = "directives")
 @Name(SetHeader.NAME)
-@Categories(categories = { "column"})
+@Categories(categories = {"column"})
 @Description("Sets the header of columns, in the order they are specified.")
 public class SetHeader implements Directive, Lineage {
-  public static final String NAME = "set-headers";
-  // Name of the columns represented in a {@link Row}
-  private List<String> columns = new ArrayList<>();
+    public static final String NAME = "set-headers";
+    // Name of the columns represented in a {@link Row}
+    private List<String> columns = new ArrayList<>();
 
-  @Override
-  public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
-    builder.define("column", TokenType.COLUMN_NAME_LIST);
-    return builder.build();
-  }
+    @Override
+    public UsageDefinition define() {
+        UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+        builder.define("column", TokenType.COLUMN_NAME_LIST);
+        return builder.build();
+    }
 
-  @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
-    columns = ((ColumnNameList) args.value("column")).value();
-  }
+    @Override
+    public void initialize(Arguments args) throws DirectiveParseException {
+        columns = ((ColumnNameList) args.value("column")).value();
+    }
 
-  @Override
-  public void destroy() {
-    // no-op
-  }
+    @Override
+    public void destroy() {
+        // no-op
+    }
 
-  @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException {
-    for (Row row : rows) {
-      int idx = 0;
-      for (String name : columns) {
-        if (idx < row.width()) {
-          row.setColumn(idx, name.trim());
+    @Override
+    public List<Row> execute(List<Row> rows, ExecutorContext context)
+            throws DirectiveExecutionException {
+        for (Row row : rows) {
+            int idx = 0;
+            for (String name : columns) {
+                if (idx < row.width()) {
+                    row.setColumn(idx, name.trim());
+                }
+                idx++;
+            }
         }
-        idx++;
-      }
+        return rows;
     }
-    return rows;
-  }
 
-  @Override
-  public Mutation lineage() {
-    return Mutation.builder()
-      .readable("Set the new header as columns '%s'", columns)
-      .generate(Many.of(columns))
-      .build();
-  }
+    @Override
+    public Mutation lineage() {
+        return Mutation.builder()
+                .readable("Set the new header as columns '%s'", columns)
+                .generate(Many.of(columns))
+                .build();
+    }
 
-  @Override
-  public Schema getOutputSchema(SchemaResolutionContext context) {
-    List<Schema.Field> inputFields = context.getInputSchema().getFields();
-    List<Schema.Field> outputFields = new ArrayList<>();
-    for (int i = 0; i < columns.size() && i < inputFields.size(); i++) {
-      outputFields.add(Schema.Field.of(columns.get(i).trim(), inputFields.get(i).getSchema()));
+    @Override
+    public Schema getOutputSchema(SchemaResolutionContext context) {
+        List<Schema.Field> inputFields = context.getInputSchema().getFields();
+        List<Schema.Field> outputFields = new ArrayList<>();
+        for (int i = 0; i < columns.size() && i < inputFields.size(); i++) {
+            outputFields.add(Schema.Field.of(columns.get(i).trim(),
+                    inputFields.get(i).getSchema()));
+        }
+        // Leftover columns (not renamed)
+        for (int i = columns.size(); i < inputFields.size(); i++) {
+            outputFields.add(inputFields.get(i));
+        }
+        return Schema.recordOf("outputSchema", outputFields);
     }
-    // Leftover columns (not renamed)
-    for (int i = columns.size(); i < inputFields.size(); i++) {
-      outputFields.add(inputFields.get(i));
-    }
-    return Schema.recordOf("outputSchema", outputFields);
-  }
 }

@@ -21,14 +21,16 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 import java.util.Iterator;
 
 /**
- * A simple abstract iterator which implements the remove method as unsupported operation.
+ * A simple abstract iterator which implements the remove method as
+ * unsupported operation.
  *
  * @param <T> The type of iterator data.
  */
 @PublicEvolving
 public abstract class SamplingIterator<T> implements Iterator<T> {
-  @Override
-  public void remove() {
-    throw new UnsupportedOperationException("This operation is not supported.");
-  }
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException("This operation is not " +
+                "supported.");
+    }
 }

@@ -2,7 +2,8 @@
  *  Copyright © 2021 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
+ *  use this file except in compliance with the License. You may obtain a
+ * copy of
  *  the License at
  *
  *  http://www.apache.org/licenses/LICENSE-2.0
@@ -10,7 +11,8 @@
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
+ *  License for the specific language governing permissions and limitations
+ * under
  *  the License.
  */
 package io.cdap.directives.datetime;
@@ -45,57 +47,59 @@ import java.util.List;
 @Description("Generates current datetime using the given zone")
 public class CurrentDateTime implements Directive, Lineage {
 
-  public static final String NAME = "current-datetime";
-  private static final String COLUMN = "column";
-  private static final String ZONE = "timezone";
-  private static final String UTC = "UTC";
-  private String column;
-  private String zone;
-  private ZoneId zoneId;
+    public static final String NAME = "current-datetime";
+    private static final String COLUMN = "column";
+    private static final String ZONE = "timezone";
+    private static final String UTC = "UTC";
+    private String column;
+    private String zone;
+    private ZoneId zoneId;
 
-  @Override
-  public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
-    builder.define(COLUMN, TokenType.COLUMN_NAME);
-    builder.define(ZONE, TokenType.TEXT, Optional.TRUE);
-    return builder.build();
-  }
-
-  @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value(COLUMN)).value();
-    if (args.value(ZONE) == null) {
-      this.zone = UTC;
-      this.zoneId = ZoneId.of(UTC);
-      return;
+    @Override
+    public UsageDefinition define() {
+        UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+        builder.define(COLUMN, TokenType.COLUMN_NAME);
+        builder.define(ZONE, TokenType.TEXT, Optional.TRUE);
+        return builder.build();
     }
 
-    this.zone = args.value(ZONE).value().toString();
-    try {
-      this.zoneId = ZoneId.of(this.zone);
-    } catch (IllegalArgumentException | ZoneRulesException exception) {
-      throw new DirectiveParseException(NAME, String.format("Zone '%s' is invalid.", this.zone), exception);
+    @Override
+    public void initialize(Arguments args) throws DirectiveParseException {
+        this.column = ((ColumnName) args.value(COLUMN)).value();
+        if (args.value(ZONE) == null) {
+            this.zone = UTC;
+            this.zoneId = ZoneId.of(UTC);
+            return;
+        }
+
+        this.zone = args.value(ZONE).value().toString();
+        try {
+            this.zoneId = ZoneId.of(this.zone);
+        } catch (IllegalArgumentException | ZoneRulesException exception) {
+            throw new DirectiveParseException(NAME, String.format("Zone '%s' " +
+                    "is invalid.", this.zone), exception);
+        }
     }
-  }
 
-  @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) {
-    for (Row row : rows) {
-      row.addOrSet(column, LocalDateTime.now(zoneId));
+    @Override
+    public List<Row> execute(List<Row> rows, ExecutorContext context) {
+        for (Row row : rows) {
+            row.addOrSet(column, LocalDateTime.now(zoneId));
+        }
+        return rows;
     }
-    return rows;
-  }
 
-  @Override
-  public void destroy() {
-    //no op
-  }
+    @Override
+    public void destroy() {
+        //no op
+    }
 
-  @Override
-  public Mutation lineage() {
-    return Mutation.builder()
-      .readable("Generated current datetime for column '%s' with zone '%s'", column, zone)
-      .relation(column, column)
-      .build();
-  }
+    @Override
+    public Mutation lineage() {
+        return Mutation.builder()
+                .readable("Generated current datetime for column '%s' with " +
+                        "zone '%s'", column, zone)
+                .relation(column, column)
+                .build();
+    }
 }

@@ -22,15 +22,17 @@ import java.io.IOException;
 
 
 /**
- * The {@link AvroSchemaLoader} interface abstracts loading an AVRO data model schema definitions.
+ * The {@link AvroSchemaLoader} interface abstracts loading an AVRO data
+ * model schema definitions.
  */
 public interface AvroSchemaLoader {
 
-  /**
-   * Loads and parses an AVRO data model schema.
-   *
-   * @return a map with keys representing the name of the schema. The value is a set of all of the revisions of the
-   * {@link Schema}.
-   */
-  SetValuedMap<String, Schema> load() throws IOException;
+    /**
+     * Loads and parses an AVRO data model schema.
+     *
+     * @return a map with keys representing the name of the schema. The value
+     * is a set of all of the revisions of the
+     * {@link Schema}.
+     */
+    SetValuedMap<String, Schema> load() throws IOException;
 }

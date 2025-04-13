@@ -25,16 +25,19 @@ import java.util.Map;
 /**
  * The result of executing directives on a workspace.
  */
-public class DirectiveExecutionResponse extends ServiceResponse<Map<String, Object>> {
-  private final Collection<String> header;
-  private final Map<String, String> types;
-  private final List<String> directives;
+public class DirectiveExecutionResponse extends ServiceResponse<Map<String,
+        Object>> {
+    private final Collection<String> header;
+    private final Map<String, String> types;
+    private final List<String> directives;
 
-  public DirectiveExecutionResponse(Collection<Map<String, Object>> values, Collection<String> header,
-                                    Map<String, String> types, List<String> directives) {
-    super(values);
-    this.header = header;
-    this.types = types;
-    this.directives = directives;
-  }
+    public DirectiveExecutionResponse(Collection<Map<String, Object>> values,
+                                      Collection<String> header,
+                                      Map<String, String> types,
+                                      List<String> directives) {
+        super(values);
+        this.header = header;
+        this.types = types;
+        this.directives = directives;
+    }
 }

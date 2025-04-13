@@ -25,9 +25,12 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 import java.util.List;
 
 /**
- * The Bool List class wraps the list of primitive type {@code Boolean} in a object.
- * An object of type {@code BoolList} contains the value as a {@code List} of primitive type
- * {@code Boolean}. Along with the list of {@code Boolean} type, this object also contains
+ * The Bool List class wraps the list of primitive type {@code Boolean} in a
+ * object.
+ * An object of type {@code BoolList} contains the value as a {@code List} of
+ * primitive type
+ * {@code Boolean}. Along with the list of {@code Boolean} type, this object
+ * also contains
  * the value that represents the type of this object as {@code TokenType}.
  *
  * <p>In addition, this class provides two methods one to extract the
@@ -48,55 +51,61 @@ import java.util.List;
  */
 @PublicEvolving
 public class BoolList implements Token {
-  /**
-   * The {@code List<Boolean>} object that represents the value held by the token.
-   */
-  private List<Boolean> values;
+    /**
+     * The {@code List<Boolean>} object that represents the value held by the
+     * token.
+     */
+    private List<Boolean> values;
 
-  /**
-   * Allocates a {@code List<Boolean>} object representing the {@code value} argument.
-   * @param values
-   */
-  public BoolList(List<Boolean> values) {
-    this.values = values;
-  }
-
-  /**
-   * Returns the value of this {@code BoolList} object as a list of boolean
-   * primitive.
-   *
-   * @return  the list of primitive {@code boolean} {@code values} of this object.
-   */
-  @Override
-  public List<Boolean> value() {
-    return values;
-  }
-
-  /**
-   * Returns the type of this {@code BoolList} object as a {@code TokenType}
-   * enum.
-   *
-   * @return the enumerated {@code TokenType} of this object.
-   */
-  @Override
-  public TokenType type() {
-    return TokenType.BOOLEAN_LIST;
-  }
-
-  /**
-   * Returns the members of this {@code BoolList} object as a {@code JsonElement}.
-   *
-   * @return Json representation of this {@code BoolList} object as {@code JsonElement}
-   */
-  @Override
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("type", TokenType.BOOLEAN_LIST.name());
-    JsonArray array = new JsonArray();
-    for (Boolean value : values) {
-      array.add(new JsonPrimitive(value));
+    /**
+     * Allocates a {@code List<Boolean>} object representing the {@code value
+     * } argument.
+     *
+     * @param values
+     */
+    public BoolList(List<Boolean> values) {
+        this.values = values;
     }
-    object.add("value", array);
-    return object;
-  }
+
+    /**
+     * Returns the value of this {@code BoolList} object as a list of boolean
+     * primitive.
+     *
+     * @return the list of primitive {@code boolean} {@code values} of this
+     * object.
+     */
+    @Override
+    public List<Boolean> value() {
+        return values;
+    }
+
+    /**
+     * Returns the type of this {@code BoolList} object as a {@code TokenType}
+     * enum.
+     *
+     * @return the enumerated {@code TokenType} of this object.
+     */
+    @Override
+    public TokenType type() {
+        return TokenType.BOOLEAN_LIST;
+    }
+
+    /**
+     * Returns the members of this {@code BoolList} object as a {@code
+     * JsonElement}.
+     *
+     * @return Json representation of this {@code BoolList} object as {@code
+     * JsonElement}
+     */
+    @Override
+    public JsonElement toJson() {
+        JsonObject object = new JsonObject();
+        object.addProperty("type", TokenType.BOOLEAN_LIST.name());
+        JsonArray array = new JsonArray();
+        for (Boolean value : values) {
+            array.add(new JsonPrimitive(value));
+        }
+        object.add("value", array);
+        return object;
+    }
 }
